@@ -5,6 +5,7 @@ Created on Mon Aug  5 15:19:27 2019
 @author: wzyblowfire
 """
 import os
+import json
 from browsermobproxy import Server 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -12,6 +13,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 
+import spider
 
 url = 'https://flights.ctrip.com/international/search/oneway-hkg0-man?' +\
         'depdate=2019-09-18&cabin=y_s&adult=1&child=0&infant=0'
@@ -69,8 +71,6 @@ def get_initinfo(url):
         if 'batchSearch' in entry['request']['url']:
             postdata = entry['request']['postData']['text']
             header = entry['request']['headers']    
-            #flightdata = str(entry['response']['content']).encode('utf-8')
-            #print(flightdata)
             for x in header:
                 if x['name'] == 'sign':
                     sign = x['value']
@@ -81,4 +81,13 @@ def get_initinfo(url):
 
 if __name__ == '__main__':
     url = search_url('hkg', 'man', '2019-09-20')
-    print(get_initinfo(url))
+    sign, tid, postdata = get_initinfo(url)
+    #postdata = eval(postdata)
+
+    postdata = json.loads(postdata)
+    if postdata['directFlight']:
+        postdata['directFlight'] = 'true'
+    else:
+        postdata['directFlight'] = 'false'
+    result = spider.spider_searchflights(sign, tid, postdata)
+    #print(result)
