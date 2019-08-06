@@ -33,7 +33,6 @@ def spider_searchcriteria(URL):
     sc = json.loads(stri)
     return sc
     
-    
 def spider_searchflights(URL, sign, tid):
     search_URL = 'https://flights.ctrip.com/international/search/api/search/batchSearch?v='
     sc = spider_searchcriteria(URL)
@@ -67,8 +66,6 @@ def spider_searchflights(URL, sign, tid):
     if dict_json['status'] != 0:
         print(dict_json['msg'])
     return dict_json
-
-
 
 def spider_search(time):
     info = get_info()
