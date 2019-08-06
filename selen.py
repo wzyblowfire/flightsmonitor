@@ -14,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 
 import spider
-
+from flight import Flights
 url = 'https://flights.ctrip.com/international/search/oneway-hkg0-man?' +\
         'depdate=2019-09-18&cabin=y_s&adult=1&child=0&infant=0'
         
@@ -67,27 +67,37 @@ def get_initinfo(url):
     server.stop()
     driver.quit()
     # 获取https://flights.ctrip.com/international/search/api/search/batchSearch这个访问过程中的重要信息
+    headers = {}
     for entry in result['log']['entries']:
         if 'batchSearch' in entry['request']['url']:
             postdata = entry['request']['postData']['text']
-            header = entry['request']['headers']    
+            header = entry['request']['headers']  
+           
             for x in header:
+                headers[x['name']] = x['value']
+                '''
                 if x['name'] == 'sign':
                     sign = x['value']
                 elif x['name'] == 'transactionID':
                     tid = x['value']
-                    
-    return sign, tid, postdata
+                '''
+    print(headers)               
+    return headers, postdata
 
 if __name__ == '__main__':
     url = search_url('hkg', 'man', '2019-09-20')
-    sign, tid, postdata = get_initinfo(url)
-    #postdata = eval(postdata)
-
+    headers, postdata = get_initinfo(url)
     postdata = json.loads(postdata)
-    if postdata['directFlight']:
-        postdata['directFlight'] = 'true'
-    else:
-        postdata['directFlight'] = 'false'
-    result = spider.spider_searchflights(sign, tid, postdata)
+    postdata = json.dumps(postdata)
+    result = spider.spider_searchflights(headers, postdata)
+    result = result['data']['flightItineraryList']
+    flights = {}
+    for x in result:
+        flight = Flights(x)
+        print(flight)
+        #flights[flight.fid] = flight
+        #now_time = datetime.now()
+        #db.flight_insert(flight, now_time)
+    
+    #print(len(flights))
     #print(result)

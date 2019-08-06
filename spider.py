@@ -19,8 +19,8 @@ def get_info(time='2019-09-17'):
     info = pd.read_excel(path, 'Sheet1', encoding = 'uft-8').fillna('')
     return info
     
-def spider_searchcriteria(URL):
-    #URL = "https://flights.ctrip.com/international/search/oneway-hkg0-man?depdate=2019-09-17&cabin=y_s&adult=1&child=0&infant=0"
+def spider_searchcriteria():
+    URL = "https://flights.ctrip.com/international/search/oneway-hkg0-man?depdate=2019-09-17&cabin=y_s&adult=1&child=0&infant=0"
     response = requests.get(URL)
     
     html = etree.HTML(response.text)
@@ -33,13 +33,14 @@ def spider_searchcriteria(URL):
     sc = json.loads(stri)
     return sc
     
-def spider_searchflights(sign, tid, post_data):
+def spider_searchflights(headers, post_data):
     search_URL = 'https://flights.ctrip.com/international/search/api/search/batchSearch?v='
     #sc = spider_searchcriteria(URL)
     #sc['flightWayEnum'] = "OW"
     #sc['transactionid'] = tid
     #data = json.dumps(post_data)
     #print(data)
+    '''
     headers = {
     'authority': 'flights.ctrip.com',
     'method': 'POST',
@@ -60,7 +61,7 @@ def spider_searchflights(sign, tid, post_data):
     'transactionid': tid,
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.66 Safari/537.36'
     }
-    
+    '''
     response = requests.post(search_URL, data=post_data, headers=headers)
 
     dict_json = json.loads(response.text)
@@ -79,5 +80,6 @@ def spider_search(time):
     result = spider_searchflights(URL, sign, tid)
     print(len(result['data']['flightItineraryList']))
     return result['data']['flightItineraryList']
+
     
-    
+
