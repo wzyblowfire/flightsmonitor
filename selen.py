@@ -18,9 +18,6 @@ from selenium.webdriver.chrome.options import Options
 import spider
 from flight import Flights
 
-
-url = 'https://flights.ctrip.com/international/search/oneway-hkg0-man?' +\
-        'depdate=2019-09-18&cabin=y_s&adult=1&child=0&infant=0'
         
 def search_url(depport, arrport, depdate):
     """
@@ -76,13 +73,7 @@ def get_initinfo(url):
             header = entry['request']['headers']  
            
             for x in header:
-                headers[x['name']] = x['value']
-                '''
-                if x['name'] == 'sign':
-                    sign = x['value']
-                elif x['name'] == 'transactionID':
-                    tid = x['value']
-                '''             
+                headers[x['name']] = x['value']         
     return headers, postdata
 
 def spider_searchflights(headers, post_data):
@@ -115,5 +106,5 @@ if __name__ == '__main__':
         flights = {}
         for x in result:
             flight = Flights(x)
-            print(flight)
+            print(flight) 
         time.sleep(60)  #每60秒更新一次
