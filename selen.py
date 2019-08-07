@@ -5,7 +5,9 @@ Created on Mon Aug  5 15:19:27 2019
 @author: wzyblowfire
 """
 import os
+import time
 import json
+import requests
 from browsermobproxy import Server 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -15,6 +17,8 @@ from selenium.webdriver.chrome.options import Options
 
 import spider
 from flight import Flights
+
+
 url = 'https://flights.ctrip.com/international/search/oneway-hkg0-man?' +\
         'depdate=2019-09-18&cabin=y_s&adult=1&child=0&infant=0'
         
@@ -37,12 +41,10 @@ def get_initinfo(url):
     """
     本函数用于获取签名sign信息,transactionID和后续请求data.
     其中使用了selenium和browsermob-proxy.
-    其配置安装可见
     参数：
         url: 携程搜索国际航班的url
     返回值：
-        sign：后续持续获取航班信息请求头中的签名
-        tid: 后续持续获取航班信息请求头中的transactionID
+        headers：后续请求头信息
         postdata: 后续持续获取航班信息请求头中的提交json信息
     """
     # browsermob-proxy配置路径，请将这里填写为自己电脑上的路径
@@ -80,24 +82,38 @@ def get_initinfo(url):
                     sign = x['value']
                 elif x['name'] == 'transactionID':
                     tid = x['value']
-                '''
-    print(headers)               
+                '''             
     return headers, postdata
+
+def spider_searchflights(headers, post_data):
+    """
+    后续持续获取数据函数
+    参数：
+        headers：请求头信息
+        post_data: 请求头中的数据信息（json）
+    返回：
+        dict_json: 航班信息（字典）
+    """
+    
+    search_URL = 'https://flights.ctrip.com/international/search/api/search/batchSearch?v='
+    response = requests.post(search_URL, data=post_data, headers=headers)
+    dict_json = json.loads(response.text)
+    # 如果请求不成功，输出信息
+    if dict_json['status'] != 0:
+        print(dict_json['msg'])
+    return dict_json
+
 
 if __name__ == '__main__':
     url = search_url('hkg', 'man', '2019-09-20')
     headers, postdata = get_initinfo(url)
     postdata = json.loads(postdata)
     postdata = json.dumps(postdata)
-    result = spider.spider_searchflights(headers, postdata)
-    result = result['data']['flightItineraryList']
-    flights = {}
-    for x in result:
-        flight = Flights(x)
-        print(flight)
-        #flights[flight.fid] = flight
-        #now_time = datetime.now()
-        #db.flight_insert(flight, now_time)
-    
-    #print(len(flights))
-    #print(result)
+    while True:
+        result = spider.spider_searchflights(headers, postdata)
+        result = result['data']['flightItineraryList']
+        flights = {}
+        for x in result:
+            flight = Flights(x)
+            print(flight)
+        time.sleep(60)  #每60秒更新一次
